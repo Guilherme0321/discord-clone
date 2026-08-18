@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: discord-clone-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        fromService:
+          type: web
+          name: discord-clone-frontend
+          property: host
+
+  - type: static
+    name: discord-clone-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: discord-clone-backend
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

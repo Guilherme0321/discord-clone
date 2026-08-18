@@ -1,0 +1,17 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*
+!.env.example
+
+# Editores / SO
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+
+# Configurações locais do Claude Code (permissões específicas da sua máquina)
+.claude/settings.local.json
