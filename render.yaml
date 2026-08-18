@@ -10,11 +10,10 @@ services:
     envVars:
       - key: JWT_SECRET
         generateValue: true
+      # Defina manualmente no painel do Render após o primeiro deploy do
+      # frontend: a URL pública dele (ex: https://discord-clone-frontend-xxxx.onrender.com)
       - key: CLIENT_URL
-        fromService:
-          type: web
-          name: discord-clone-frontend
-          property: host
+        sync: false
 
   - type: web
     name: discord-clone-frontend
@@ -23,11 +22,10 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
+      # Defina manualmente no painel do Render após o primeiro deploy do
+      # backend: a URL pública dele (ex: https://discord-clone-backend-xxxx.onrender.com)
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: discord-clone-backend
-          property: host
+        sync: false
     routes:
       - type: rewrite
         source: /*
