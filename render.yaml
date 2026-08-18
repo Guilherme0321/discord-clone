@@ -16,8 +16,9 @@ services:
           name: discord-clone-frontend
           property: host
 
-  - type: static
+  - type: web
     name: discord-clone-frontend
+    env: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
