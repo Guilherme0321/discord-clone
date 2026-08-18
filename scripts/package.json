@@ -1,0 +1,12 @@
+{
+  "name": "discord-clone-validation-scripts",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "validate": "node validate.mjs"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.3"
+  }
+}
