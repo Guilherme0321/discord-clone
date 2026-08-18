@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { api } from "../../lib/api";
 import { useAuthStore } from "../../store/useAuthStore";
+import { DiscordiaLogo } from "../icons/Icons";
 import type { User } from "../../types";
 
 export function LoginScreen() {
@@ -28,6 +29,10 @@ export function LoginScreen() {
   return (
     <div className="flex h-full w-full items-center justify-center bg-discord-bg-darkest">
       <div className="w-full max-w-md rounded-md bg-discord-bg p-8 shadow-xl">
+        <div className="mb-4 flex flex-col items-center gap-2">
+          <DiscordiaLogo className="h-14 w-14" />
+          <span className="text-xl font-bold text-white">Discordia</span>
+        </div>
         <h1 className="text-center text-2xl font-semibold text-white">Bem-vindo(a) de volta!</h1>
         <p className="mt-2 text-center text-sm text-discord-text-muted">
           Que bom te ver de novo! Digite um nome de usuário para entrar.

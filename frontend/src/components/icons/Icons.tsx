@@ -2,6 +2,32 @@ type IconProps = {
   className?: string;
 };
 
+export function DiscordiaLogo({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 100 100" className={className}>
+      <defs>
+        <linearGradient id="discordia-face" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#b79bff" />
+          <stop offset="100%" stopColor="#6d3cff" />
+        </linearGradient>
+      </defs>
+      <path
+        fill="url(#discordia-face)"
+        d="M50 6 L56.5 17.5 L72 12 Q84 12 84 24 L84 62 Q84 78 70 84 L58 90 Q50 95 42 90 L30 84 Q16 78 16 62 L16 24 Q16 12 28 12 L43.5 17.5 Z"
+      />
+      <circle cx="38.5" cy="50" r="7.5" fill="#1a1030" />
+      <circle cx="61.5" cy="50" r="7.5" fill="#1a1030" />
+      <path
+        stroke="#1a1030"
+        strokeWidth="5"
+        strokeLinecap="round"
+        fill="none"
+        d="M39 68 Q50 78 61 68"
+      />
+    </svg>
+  );
+}
+
 export function HashIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor">
