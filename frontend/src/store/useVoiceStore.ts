@@ -11,6 +11,12 @@ export interface VoiceParticipant {
   screenStream: MediaStream | null;
 }
 
+export interface ChannelPresenceEntry {
+  socketId: string;
+  userId: string;
+  username: string;
+}
+
 interface PeerEntry {
   connection: RTCPeerConnection;
   micStreamId: string | null;
@@ -31,7 +37,11 @@ interface VoiceState {
   isSharingScreen: boolean;
   isConnecting: boolean;
   participants: Record<string, VoiceParticipant>;
+  // Presença por canal de voz (quem está conectado), independente de o
+  // usuário atual estar ou não naquele canal — alimenta a sidebar.
+  presenceByChannel: Record<string, ChannelPresenceEntry[]>;
 
+  joinServer: (serverId: string) => void;
   joinVoiceChannel: (channelId: string) => Promise<void>;
   leaveVoiceChannel: () => void;
   toggleMute: () => void;
@@ -46,6 +56,10 @@ interface VoiceState {
   handleAnswer: (payload: AnswerPayload) => Promise<void>;
   handleIceCandidate: (payload: IceCandidatePayload) => Promise<void>;
   handleScreenShareState: (payload: { socketId: string; isSharing: boolean }) => void;
+  handleChannelUpdate: (payload: {
+    channelId: string;
+    participants: ChannelPresenceEntry[];
+  }) => void;
 }
 
 interface RemotePeerInfo {
@@ -80,6 +94,11 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
   isSharingScreen: false,
   isConnecting: false,
   participants: {},
+  presenceByChannel: {},
+
+  joinServer: (serverId: string) => {
+    getSocket()?.emit("join-server", serverId);
+  },
 
   joinVoiceChannel: async (channelId: string) => {
     if (get().joinedChannelId) {
@@ -231,6 +250,12 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
         },
       };
     });
+  },
+
+  handleChannelUpdate: ({ channelId, participants }) => {
+    set((state) => ({
+      presenceByChannel: { ...state.presenceByChannel, [channelId]: participants },
+    }));
   },
 }));
 

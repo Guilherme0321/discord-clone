@@ -21,7 +21,7 @@ import { createMessageRouter } from "./modules/chat/message.routes";
 // --- Repositórios (trocar por implementações reais/Prisma no futuro sem tocar em service/controller) ---
 const userRepository = new InMemoryUserRepository();
 const serverRepository = new InMemoryServerRepository();
-const channelRepository = new InMemoryChannelRepository();
+export const channelRepository = new InMemoryChannelRepository();
 const messageRepository = new InMemoryMessageRepository();
 
 // --- Services ---

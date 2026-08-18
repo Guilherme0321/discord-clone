@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "../../store/useAppStore";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useVoiceStore, type VoiceParticipant } from "../../store/useVoiceStore";
+import { useVoiceStore } from "../../store/useVoiceStore";
 import { colorFromId } from "../../lib/color";
 import {
   ExpandIcon,
@@ -71,11 +71,6 @@ export function VoiceRoomArea() {
         <SpeakerIcon className="h-5 w-5 text-discord-text-dim" />
         <h2 className="font-semibold text-white">{currentChannel?.name ?? "canal de voz"}</h2>
       </header>
-
-      {/* Reprodução de áudio remoto (sempre montada enquanto conectado, independente da UI) */}
-      {participantList.map((participant) => (
-        <RemoteAudio key={participant.socketId} participant={participant} isDeafened={isDeafened} />
-      ))}
 
       <div className="flex flex-1 flex-col items-center justify-center gap-6 overflow-y-auto p-8">
         {isJoinedHere && user ? (
@@ -170,26 +165,6 @@ export function VoiceRoomArea() {
       </div>
     </section>
   );
-}
-
-function RemoteAudio({
-  participant,
-  isDeafened,
-}: {
-  participant: VoiceParticipant;
-  isDeafened: boolean;
-}) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    if (audioRef.current && participant.stream) {
-      audioRef.current.srcObject = participant.stream;
-    }
-  }, [participant.stream]);
-
-  if (!participant.stream) return null;
-
-  return <audio ref={audioRef} autoPlay muted={isDeafened} className="hidden" />;
 }
 
 function ScreenTile({

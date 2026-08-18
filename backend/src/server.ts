@@ -1,6 +1,6 @@
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
-import { createApp, messageService } from "./app";
+import { createApp, channelRepository, messageService } from "./app";
 import { CLIENT_URL, PORT } from "./config/env";
 import { registerSocketAuth } from "./shared/socket-auth";
 import { registerChatSocket } from "./modules/chat/chat.socket";
@@ -18,7 +18,7 @@ const io = new SocketIOServer(httpServer, {
 
 registerSocketAuth(io);
 registerChatSocket(io, messageService);
-registerVoiceSignaling(io);
+registerVoiceSignaling(io, channelRepository);
 
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);

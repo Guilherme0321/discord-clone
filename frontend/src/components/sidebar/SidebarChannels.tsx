@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useAppStore } from "../../store/useAppStore";
+import { useVoiceStore } from "../../store/useVoiceStore";
+import { colorFromId } from "../../lib/color";
 import { CopyIcon, HashIcon, SpeakerIcon } from "../icons/Icons";
 import { ControlPanel } from "../controls/ControlPanel";
 
@@ -58,9 +60,9 @@ export function SidebarChannels() {
         {voiceChannels.length > 0 && (
           <ChannelGroup title="Canais de voz">
             {voiceChannels.map((channel) => (
-              <ChannelItem
+              <VoiceChannelItem
                 key={channel.id}
-                icon={<SpeakerIcon className="h-5 w-5" />}
+                channelId={channel.id}
                 name={channel.name}
                 isActive={channel.id === currentChannelId}
                 onClick={() => selectChannel(channel.id)}
@@ -109,5 +111,54 @@ function ChannelItem({
       <span className="text-discord-text-dim">{icon}</span>
       <span className="truncate">{name}</span>
     </button>
+  );
+}
+
+function VoiceChannelItem({
+  channelId,
+  name,
+  isActive,
+  onClick,
+}: {
+  channelId: string;
+  name: string;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  const presence = useVoiceStore((state) => state.presenceByChannel[channelId]);
+  const connected = presence ?? [];
+
+  return (
+    <div>
+      <button
+        onClick={onClick}
+        className={`flex w-full items-center gap-1.5 rounded px-2 py-1.5 text-sm font-medium transition-colors ${
+          isActive
+            ? "bg-discord-bg-lighter text-white"
+            : "text-discord-text-muted hover:bg-discord-bg-light hover:text-discord-text"
+        }`}
+      >
+        <span className="text-discord-text-dim">
+          <SpeakerIcon className="h-5 w-5" />
+        </span>
+        <span className="truncate">{name}</span>
+      </button>
+
+      {connected.length > 0 && (
+        <div className="ml-6 mt-0.5 space-y-0.5">
+          {connected.map((person) => (
+            <div key={person.socketId} className="flex items-center gap-1.5 px-2 py-1">
+              <span
+                className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-semibold text-white"
+                style={{ backgroundColor: colorFromId(person.userId) }}
+              >
+                {person.username.slice(0, 2).toUpperCase()}
+              </span>
+              <span className="truncate text-xs text-discord-text-muted">{person.username}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
