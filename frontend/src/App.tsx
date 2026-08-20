@@ -1,6 +1,7 @@
 import { useAuthStore } from "./store/useAuthStore";
 import { LoginScreen } from "./components/auth/LoginScreen";
 import { AppLayout } from "./components/layout/AppLayout";
+import { ConnectionStatusBanner } from "./components/layout/ConnectionStatusBanner";
 import { VoiceAudioSinks } from "./components/voice/VoiceAudioSinks";
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
 
   return (
     <>
+      <ConnectionStatusBanner />
       <AppLayout />
       {/* Nível raiz: o áudio da chamada de voz precisa sobreviver à troca de
           canal/servidor. Ver regra em VoiceAudioSinks.tsx. */}

@@ -27,7 +27,7 @@ export function MessageList({ messages }: { messages: Message[] }) {
             key={message.id}
             className={`group flex gap-3 rounded px-2 hover:bg-discord-bg-darkest/40 ${
               isGrouped ? "mt-0" : "mt-2"
-            }`}
+            } ${message.pending ? "opacity-50" : ""}`}
           >
             {isGrouped ? (
               <div className="w-10 flex-shrink-0" />
@@ -51,9 +51,16 @@ export function MessageList({ messages }: { messages: Message[] }) {
                   </span>
                 </div>
               )}
-              <p className="whitespace-pre-wrap break-words text-sm text-discord-text">
+              <p
+                className={`whitespace-pre-wrap break-words text-sm ${
+                  message.failed ? "text-discord-red" : "text-discord-text"
+                }`}
+              >
                 {message.content}
               </p>
+              {message.failed && (
+                <span className="text-xs text-discord-red">Falha ao enviar</span>
+              )}
             </div>
           </div>
         );

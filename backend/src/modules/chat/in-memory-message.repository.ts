@@ -15,4 +15,9 @@ export class InMemoryMessageRepository implements IMessageRepository {
     const list = this.messagesByChannel.get(channelId) ?? [];
     return list.slice(-limit);
   }
+
+  async listByChannelSince(channelId: string, since: Date): Promise<Message[]> {
+    const list = this.messagesByChannel.get(channelId) ?? [];
+    return list.filter((message) => message.createdAt > since);
+  }
 }

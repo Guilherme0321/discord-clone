@@ -18,7 +18,7 @@ export function VoiceAudioSinks() {
   return (
     <>
       {participantList.map((participant) => (
-        <RemoteAudio key={participant.socketId} participant={participant} isDeafened={isDeafened} />
+        <RemoteAudio key={participant.userId} participant={participant} isDeafened={isDeafened} />
       ))}
     </>
   );

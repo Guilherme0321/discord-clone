@@ -28,7 +28,10 @@ export class MessageService {
     return this.messageRepository.create(message);
   }
 
-  async getHistory(channelId: string): Promise<Message[]> {
+  async getHistory(channelId: string, since?: Date): Promise<Message[]> {
+    if (since) {
+      return this.messageRepository.listByChannelSince(channelId, since);
+    }
     return this.messageRepository.listByChannel(channelId);
   }
 }

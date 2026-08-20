@@ -3,6 +3,7 @@ import { useAppStore } from "../../store/useAppStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useVoiceStore } from "../../store/useVoiceStore";
 import { colorFromId } from "../../lib/color";
+import { INSECURE_CONTEXT_MESSAGE, isMediaDevicesAvailable } from "../../lib/secureContext";
 import {
   ExpandIcon,
   FullscreenIcon,
@@ -37,13 +38,14 @@ export function VoiceRoomArea() {
   const [largeTileKey, setLargeTileKey] = useState<string | null>(null);
   const isJoinedHere = joinedChannelId === channelId;
   const participantList = Object.values(participants);
+  const mediaAvailable = isMediaDevicesAvailable();
 
   function toggleLargeTile(tileKey: string) {
     setLargeTileKey((current) => (current === tileKey ? null : tileKey));
   }
 
   async function handleJoin() {
-    if (!channelId) return;
+    if (!channelId || !mediaAvailable) return;
     setError(null);
     try {
       await joinVoiceChannel(channelId);
@@ -53,6 +55,7 @@ export function VoiceRoomArea() {
   }
 
   async function handleToggleScreenShare() {
+    if (!mediaAvailable) return;
     setError(null);
     try {
       if (isSharingScreen) {
@@ -92,7 +95,10 @@ export function VoiceRoomArea() {
             )}
             {participantList.map((participant) => (
               <ParticipantTile
-                key={participant.socketId}
+                // userId (não socketId): uma reconexão dentro do grace
+                // period troca o socketId por baixo dos panos, e a chave
+                // React precisa ficar estável para o tile não piscar.
+                key={participant.userId}
                 username={participant.username}
                 avatarColor={colorFromId(participant.userId)}
               />
@@ -101,7 +107,7 @@ export function VoiceRoomArea() {
               .filter((p) => p.screenStream)
               .map((participant) => (
                 <ScreenTile
-                  key={`${participant.socketId}-screen`}
+                  key={`${participant.userId}-screen`}
                   label={participant.username}
                   stream={participant.screenStream!}
                   isLarge={largeTileKey === participant.socketId}
@@ -122,14 +128,20 @@ export function VoiceRoomArea() {
           </div>
         )}
 
+        {!mediaAvailable && (
+          <p className="max-w-sm text-center text-sm text-discord-yellow">
+            {INSECURE_CONTEXT_MESSAGE}
+          </p>
+        )}
         {error && <p className="text-sm text-discord-red">{error}</p>}
 
         <div className="flex items-center gap-3">
           {!isJoinedHere ? (
             <button
               onClick={handleJoin}
-              disabled={isConnecting}
-              className="rounded-md bg-discord-green px-5 py-2.5 font-medium text-white transition hover:brightness-110 disabled:opacity-60"
+              disabled={isConnecting || !mediaAvailable}
+              title={mediaAvailable ? undefined : INSECURE_CONTEXT_MESSAGE}
+              className="rounded-md bg-discord-green px-5 py-2.5 font-medium text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isConnecting ? "Conectando..." : "Entrar no canal de voz"}
             </button>
@@ -149,8 +161,15 @@ export function VoiceRoomArea() {
               />
               <VoiceControlButton
                 icon={<ScreenShareIcon className="h-5 w-5" />}
-                label={isSharingScreen ? "Parar compartilhamento" : "Compartilhar tela"}
+                label={
+                  !mediaAvailable
+                    ? INSECURE_CONTEXT_MESSAGE
+                    : isSharingScreen
+                      ? "Parar compartilhamento"
+                      : "Compartilhar tela"
+                }
                 active={isSharingScreen}
+                disabled={!mediaAvailable}
                 onClick={handleToggleScreenShare}
               />
               <button
@@ -259,18 +278,21 @@ function VoiceControlButton({
   icon,
   label,
   active,
+  disabled,
   onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
+  disabled?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       title={label}
-      className={`flex h-11 w-11 items-center justify-center rounded-full transition ${
+      className={`flex h-11 w-11 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-40 ${
         active
           ? "bg-discord-red text-white"
           : "bg-discord-bg-light text-discord-text hover:bg-discord-bg-lighter"

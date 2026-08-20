@@ -147,7 +147,7 @@ function VoiceChannelItem({
       {connected.length > 0 && (
         <div className="ml-6 mt-0.5 space-y-0.5">
           {connected.map((person) => (
-            <div key={person.socketId} className="flex items-center gap-1.5 px-2 py-1">
+            <div key={person.userId} className="flex items-center gap-1.5 px-2 py-1">
               <span
                 className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-semibold text-white"
                 style={{ backgroundColor: colorFromId(person.userId) }}

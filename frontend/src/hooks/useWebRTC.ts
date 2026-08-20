@@ -25,16 +25,44 @@ export function useWebRTC() {
     socket.on("voice-participants", store.handleParticipants);
     socket.on("voice-user-joined", store.handleUserJoined);
     socket.on("voice-user-left", store.handleUserLeft);
+    socket.on("voice-user-reconnected", store.handleUserReconnected);
     socket.on("webrtc-offer", store.handleOffer);
     socket.on("webrtc-answer", store.handleAnswer);
     socket.on("webrtc-ice-candidate", store.handleIceCandidate);
     socket.on("screen-share-state", store.handleScreenShareState);
     socket.on("voice-channel-update", store.handleChannelUpdate);
 
+    // Mesmo motivo do useChatSocket: uma reconexão perde a room "server:<id>"
+    // do lado do servidor. Sem reentrar, a lista de presença de voz na
+    // sidebar congela silenciosamente após qualquer queda de rede.
+    //
+    // Se a reconexão foi só no nível do socket (sem reload de página — ex:
+    // wifi oscilou), `joinedChannelId` no useVoiceStore continua setado (é
+    // estado de memória, não persistido) e o microfone (localStream) ainda
+    // está vivo. Nesse caso reentra na chamada automaticamente: do lado do
+    // servidor isso cai dentro do grace period (voice-user-reconnected em
+    // vez de left+joined), então ninguém mais vê o usuário "sumir".
+    // Se foi um reload de página inteira, joinedChannelId já nasceu null de
+    // novo e este bloco não faz nada — o usuário reentra manualmente.
+    const handleReconnect = () => {
+      const currentServerId = useAppStore.getState().currentServerId;
+      if (currentServerId) {
+        store.joinServer(currentServerId);
+      }
+
+      const voiceState = useVoiceStore.getState();
+      if (voiceState.joinedChannelId && voiceState.localStream) {
+        getSocket()?.emit("join-voice-channel", voiceState.joinedChannelId);
+      }
+    };
+    socket.io.on("reconnect", handleReconnect);
+
     return () => {
+      socket.io.off("reconnect", handleReconnect);
       socket.off("voice-participants", store.handleParticipants);
       socket.off("voice-user-joined", store.handleUserJoined);
       socket.off("voice-user-left", store.handleUserLeft);
+      socket.off("voice-user-reconnected", store.handleUserReconnected);
       socket.off("webrtc-offer", store.handleOffer);
       socket.off("webrtc-answer", store.handleAnswer);
       socket.off("webrtc-ice-candidate", store.handleIceCandidate);

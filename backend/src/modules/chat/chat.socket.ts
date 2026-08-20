@@ -5,6 +5,10 @@ import { MessageService } from "./message.service";
 interface SendMessagePayload {
   channelId: string;
   content: string;
+  // Id gerado no cliente para a UI otimista: o servidor só ecoa de volta,
+  // nunca persiste — é assim que o remetente casa a mensagem pendente na
+  // tela com a confirmação real vinda do servidor.
+  tempId?: string;
 }
 
 export function registerChatSocket(io: SocketIOServer, messageService: MessageService): void {
@@ -28,10 +32,13 @@ export function registerChatSocket(io: SocketIOServer, messageService: MessageSe
           socket.data.username,
           payload.content
         );
-        io.to(channelRoom(payload.channelId)).emit("new-message", message);
+        io.to(channelRoom(payload.channelId)).emit("new-message", {
+          ...message,
+          tempId: payload.tempId,
+        });
       } catch (error) {
         const messageText = error instanceof Error ? error.message : "Could not send message";
-        socket.emit("chat-error", { message: messageText });
+        socket.emit("chat-error", { message: messageText, tempId: payload.tempId });
       }
     });
   });

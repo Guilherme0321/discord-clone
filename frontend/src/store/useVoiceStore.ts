@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { getSocket } from "../lib/socket";
+import { INSECURE_CONTEXT_MESSAGE, isMediaDevicesAvailable } from "../lib/secureContext";
 
 const ICE_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
 
@@ -60,6 +61,12 @@ interface VoiceState {
     channelId: string;
     participants: ChannelPresenceEntry[];
   }) => void;
+  handleUserReconnected: (payload: {
+    oldSocketId: string;
+    newSocketId: string;
+    userId: string;
+    username: string;
+  }) => void;
 }
 
 interface RemotePeerInfo {
@@ -101,6 +108,10 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
   },
 
   joinVoiceChannel: async (channelId: string) => {
+    if (!isMediaDevicesAvailable()) {
+      throw new Error(INSECURE_CONTEXT_MESSAGE);
+    }
+
     if (get().joinedChannelId) {
       get().leaveVoiceChannel();
     }
@@ -111,11 +122,15 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
 
     set({ localStream, joinedChannelId: channelId, isConnecting: false });
     getSocket()?.emit("join-voice-channel", channelId);
+
+    registerDeviceChangeListener(set, get);
   },
 
   leaveVoiceChannel: () => {
     const channelId = get().joinedChannelId;
     if (!channelId) return;
+
+    unregisterDeviceChangeListener();
 
     getSocket()?.emit("leave-voice-channel", channelId);
 
@@ -147,6 +162,10 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
   },
 
   startScreenShare: async () => {
+    if (!isMediaDevicesAvailable()) {
+      throw new Error(INSECURE_CONTEXT_MESSAGE);
+    }
+
     const screenStream = await navigator.mediaDevices.getDisplayMedia({
       video: true,
       audio: true,
@@ -257,6 +276,33 @@ export const useVoiceStore = create<VoiceState>()((set, get) => ({
       presenceByChannel: { ...state.presenceByChannel, [channelId]: participants },
     }));
   },
+
+  // O outro lado de uma reconexão dentro do grace period do backend: o
+  // socketId do peer mudou, mas é a mesma pessoa. Fecha a conexão antiga
+  // (já morta — o outro lado recarregou/reconectou) e migra a entrada em
+  // `participants` para a nova chave SEM removê-la, para o tile dele não
+  // sumir e reaparecer na tela. A troca efetiva de áudio acontece quando o
+  // novo offer chegar (o peer reconectado reoferece para todo mundo ao
+  // reentrar), reaproveitando esse mesmo registro via upsertParticipant.
+  handleUserReconnected: ({ oldSocketId, newSocketId, userId, username }) => {
+    peers.get(oldSocketId)?.connection.close();
+    peers.delete(oldSocketId);
+
+    set((state) => {
+      const existing = state.participants[oldSocketId];
+      if (!existing) return {};
+
+      const participants = { ...state.participants };
+      delete participants[oldSocketId];
+      participants[newSocketId] = {
+        ...existing,
+        socketId: newSocketId,
+        userId,
+        username,
+      };
+      return { participants };
+    });
+  },
 }));
 
 function getOrCreatePeerConnection(
@@ -310,9 +356,47 @@ function getOrCreatePeerConnection(
     getSocket()?.emit("webrtc-offer", { targetSocketId: peerInfo.socketId, offer });
   };
 
+  // Só remove a conexão do mapa quando ela é encerrada DE VERDADE (close()
+  // explícito, chamado por nós). 'failed'/'disconnected' não significam
+  // "acabou" — são exatamente os estados que o ICE restart abaixo tenta
+  // recuperar; apagar a entrada aqui derrubaria a chamada à toa numa simples
+  // troca de rede (Wi-Fi -> 4G), que o ICE restart resolveria sozinho.
   connection.onconnectionstatechange = () => {
-    if (["failed", "closed", "disconnected"].includes(connection.connectionState)) {
+    if (connection.connectionState === "closed") {
       peers.delete(peerInfo.socketId);
+    }
+  };
+
+  // Reage a mudanças de rede (troca de Wi-Fi para 4G, VPN ligando/desligando,
+  // etc.) sem derrubar a chamada. 'disconnected' costuma ser transitório —
+  // dá um tempo pra recuperar sozinho antes de forçar; 'failed' é definitivo
+  // e reinicia o ICE na hora. restartIce() dispara 'negotiationneeded'
+  // automaticamente, reaproveitando o handler acima.
+  let iceRecoveryTimer: ReturnType<typeof setTimeout> | null = null;
+  connection.oniceconnectionstatechange = () => {
+    const state = connection.iceConnectionState;
+
+    if (state === "connected" || state === "completed") {
+      if (iceRecoveryTimer) {
+        clearTimeout(iceRecoveryTimer);
+        iceRecoveryTimer = null;
+      }
+      return;
+    }
+
+    if (state === "failed") {
+      if (iceRecoveryTimer) {
+        clearTimeout(iceRecoveryTimer);
+        iceRecoveryTimer = null;
+      }
+      connection.restartIce();
+    } else if (state === "disconnected" && !iceRecoveryTimer) {
+      iceRecoveryTimer = setTimeout(() => {
+        iceRecoveryTimer = null;
+        if (["disconnected", "failed"].includes(connection.iceConnectionState)) {
+          connection.restartIce();
+        }
+      }, 3000);
     }
   };
 
@@ -348,4 +432,66 @@ function upsertParticipant(
       },
     };
   });
+}
+
+// --- Troca de dispositivo em tempo real (ex: plugar um fone Bluetooth) -----
+//
+// Só faz sentido escutar isso enquanto há uma chamada ativa, então o
+// listener é registrado/removido junto de joinVoiceChannel/leaveVoiceChannel
+// em vez de ficar sempre ligado.
+let deviceChangeHandler: (() => void) | null = null;
+
+function registerDeviceChangeListener(
+  set: (partial: Partial<VoiceState> | ((state: VoiceState) => Partial<VoiceState>)) => void,
+  get: () => VoiceState
+): void {
+  if (deviceChangeHandler) return;
+  deviceChangeHandler = () => {
+    void handleDeviceChange(set, get);
+  };
+  navigator.mediaDevices.addEventListener("devicechange", deviceChangeHandler);
+}
+
+function unregisterDeviceChangeListener(): void {
+  if (!deviceChangeHandler) return;
+  navigator.mediaDevices.removeEventListener("devicechange", deviceChangeHandler);
+  deviceChangeHandler = null;
+}
+
+async function handleDeviceChange(
+  set: (partial: Partial<VoiceState> | ((state: VoiceState) => Partial<VoiceState>)) => void,
+  get: () => VoiceState
+): Promise<void> {
+  const currentLocalStream = get().localStream;
+  if (!currentLocalStream) return;
+
+  let freshStream: MediaStream;
+  try {
+    // Sem especificar deviceId, o navegador dá o dispositivo padrão atual —
+    // se o usuário plugou um fone Bluetooth e o SO já trocou o padrão, é
+    // isso que volta aqui.
+    freshStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch {
+    // Nenhum dispositivo disponível/permissão perdida — mantém o áudio atual
+    // em vez de derrubar a chamada.
+    return;
+  }
+
+  const newTrack = freshStream.getAudioTracks()[0];
+  if (!newTrack) return;
+
+  newTrack.enabled = !get().isMuted;
+
+  // Troca a track em cada RTCPeerConnection ativa via replaceTrack — isso NÃO
+  // dispara renegociação nem corta o áudio dos outros participantes, ao
+  // contrário de remover e adicionar uma track nova.
+  for (const [, entry] of peers) {
+    const sender = entry.connection.getSenders().find((s) => s.track?.kind === "audio");
+    if (sender) {
+      await sender.replaceTrack(newTrack);
+    }
+  }
+
+  currentLocalStream.getAudioTracks().forEach((track) => track.stop());
+  set({ localStream: new MediaStream([newTrack]) });
 }

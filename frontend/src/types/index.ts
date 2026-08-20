@@ -29,6 +29,10 @@ export interface Message {
   authorUsername: string;
   content: string;
   createdAt: string;
+  // Só existem no lado do cliente, nunca vêm persistidos do backend — usados
+  // pela UI otimista (ver useChatStore.sendMessage).
+  pending?: boolean;
+  failed?: boolean;
 }
 
 export interface VoiceParticipant {
