@@ -130,10 +130,13 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     await Promise.all(
       Object.entries(messagesByChannel).map(async ([channelId, messages]) => {
         const lastConfirmed = [...messages].reverse().find((m) => !m.pending);
-        if (!lastConfirmed) return;
 
+        // Sem mensagem confirmada ainda (canal vazio, ou só tinha uma
+        // mensagem pendente quando a queda aconteceu) não há marca d'água
+        // pra usar em `since` — busca o histórico completo mesmo, em vez de
+        // desistir do catch-up desse canal.
         const { data: missed } = await api.get<Message[]>(`/channels/${channelId}/messages`, {
-          params: { since: lastConfirmed.createdAt },
+          params: lastConfirmed ? { since: lastConfirmed.createdAt } : undefined,
         });
         if (missed.length === 0) return;
 
