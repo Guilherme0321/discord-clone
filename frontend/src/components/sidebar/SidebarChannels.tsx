@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "../../store/useAppStore";
 import { useVoiceStore } from "../../store/useVoiceStore";
 import { colorFromId } from "../../lib/color";
-import { CopyIcon, HashIcon, SpeakerIcon } from "../icons/Icons";
+import { CopyIcon, HashIcon, SpeakerIcon, StatusDot } from "../icons/Icons";
 import { ControlPanel } from "../controls/ControlPanel";
 
 export function SidebarChannels() {
@@ -148,11 +148,17 @@ function VoiceChannelItem({
         <div className="ml-6 mt-0.5 space-y-0.5">
           {connected.map((person) => (
             <div key={person.userId} className="flex items-center gap-1.5 px-2 py-1">
-              <span
-                className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-semibold text-white"
-                style={{ backgroundColor: colorFromId(person.userId) }}
-              >
-                {person.username.slice(0, 2).toUpperCase()}
+              <span className="relative h-5 w-5 flex-shrink-0">
+                <span
+                  className="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-semibold text-white"
+                  style={{ backgroundColor: colorFromId(person.userId) }}
+                >
+                  {person.username.slice(0, 2).toUpperCase()}
+                </span>
+                <StatusDot
+                  status="online"
+                  className="absolute -bottom-0.5 -right-0.5 h-2 w-2 border border-discord-bg-dark"
+                />
               </span>
               <span className="truncate text-xs text-discord-text-muted">{person.username}</span>
             </div>

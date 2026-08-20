@@ -8,13 +8,15 @@ import {
   ExpandIcon,
   FullscreenIcon,
   HeadphoneIcon,
+  MenuIcon,
   MicIcon,
   ScreenShareIcon,
   ShrinkIcon,
   SpeakerIcon,
+  StatusDot,
 } from "../icons/Icons";
 
-export function VoiceRoomArea() {
+export function VoiceRoomArea({ onOpenMenu }: { onOpenMenu: () => void }) {
   const currentChannel = useAppStore((state) => state.currentChannel());
   const channelId = currentChannel?.id ?? null;
   const user = useAuthStore((state) => state.user);
@@ -71,6 +73,14 @@ export function VoiceRoomArea() {
   return (
     <section className="flex h-full min-w-0 flex-1 flex-col bg-discord-bg">
       <header className="flex h-12 flex-shrink-0 items-center gap-2 border-b border-discord-border px-4 shadow-sm">
+        <button
+          onClick={onOpenMenu}
+          title="Abrir menu"
+          aria-label="Abrir menu"
+          className="-ml-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded text-discord-text-muted hover:bg-discord-bg-light hover:text-discord-text md:hidden"
+        >
+          <MenuIcon className="h-5 w-5" />
+        </button>
         <SpeakerIcon className="h-5 w-5 text-discord-text-dim" />
         <h2 className="font-semibold text-white">{currentChannel?.name ?? "canal de voz"}</h2>
       </header>
@@ -259,11 +269,17 @@ function ParticipantTile({
 }) {
   return (
     <div className="flex h-32 w-40 flex-col items-center justify-center gap-2 rounded-xl bg-discord-bg-dark">
-      <div
-        className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-semibold text-white"
-        style={{ backgroundColor: avatarColor }}
-      >
-        {username.slice(0, 2).toUpperCase()}
+      <div className="relative h-14 w-14">
+        <div
+          className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-semibold text-white"
+          style={{ backgroundColor: avatarColor }}
+        >
+          {username.slice(0, 2).toUpperCase()}
+        </div>
+        <StatusDot
+          status="online"
+          className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 border-2 border-discord-bg-dark"
+        />
       </div>
       <span className="text-sm text-discord-text">
         {username}
@@ -292,6 +308,8 @@ function VoiceControlButton({
       onClick={onClick}
       disabled={disabled}
       title={label}
+      aria-label={label}
+      aria-pressed={active}
       className={`flex h-11 w-11 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-40 ${
         active
           ? "bg-discord-red text-white"

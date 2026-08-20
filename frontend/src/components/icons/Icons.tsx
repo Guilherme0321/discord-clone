@@ -136,6 +136,35 @@ export function FullscreenIcon({ className }: IconProps) {
   );
 }
 
+export function MenuIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+// Indicador de presença sobreposto no canto do avatar. `status` reaproveita
+// dados que já existem (useConnectionStore para o próprio usuário, presença
+// de canal de voz para os demais) — não introduz um sistema novo de "quem
+// está online" no servidor inteiro.
+export function StatusDot({
+  status,
+  className,
+}: {
+  status: "online" | "connecting" | "offline";
+  className?: string;
+}) {
+  const colorClass =
+    status === "online"
+      ? "bg-discord-green"
+      : status === "connecting"
+        ? "bg-discord-yellow"
+        : "bg-discord-text-dim";
+
+  return <span className={`block rounded-full ${colorClass} ${className ?? ""}`} />;
+}
+
 export function SendIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor">

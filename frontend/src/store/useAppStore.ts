@@ -7,12 +7,17 @@ interface AppState {
   currentServerId: string | null;
   currentChannelId: string | null;
   isLoadingServers: boolean;
+  // Drawer off-canvas das sidebars em telas pequenas (md: para baixo). Não
+  // existe em telas largas, onde as sidebars ficam sempre visíveis.
+  isMobileNavOpen: boolean;
 
   fetchServers: () => Promise<void>;
   createServer: (name: string) => Promise<void>;
   joinServerById: (serverId: string) => Promise<void>;
   selectServer: (serverId: string) => void;
   selectChannel: (channelId: string) => void;
+  toggleMobileNav: () => void;
+  closeMobileNav: () => void;
 
   currentServer: () => Server | null;
   currentChannel: () => Channel | null;
@@ -23,6 +28,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
   currentServerId: null,
   currentChannelId: null,
   isLoadingServers: false,
+  isMobileNavOpen: false,
 
   fetchServers: async () => {
     set({ isLoadingServers: true });
@@ -67,12 +73,20 @@ export const useAppStore = create<AppState>()((set, get) => ({
   selectServer: (serverId: string) => {
     const server = get().servers.find((s) => s.id === serverId);
     const firstTextChannel = server?.channels.find((c) => c.type === "text") ?? null;
+    // Não fecha o drawer aqui: no mobile, trocar de servidor é passo
+    // intermediário — o usuário ainda precisa ver a lista de canais (também
+    // dentro do drawer) para escolher um. Só selectChannel fecha.
     set({ currentServerId: serverId, currentChannelId: firstTextChannel?.id ?? null });
   },
 
   selectChannel: (channelId: string) => {
-    set({ currentChannelId: channelId });
+    // Fecha o drawer ao escolher um canal — no mobile, ver o conteúdo do
+    // canal é a intenção implícita de quem acabou de tocar nele.
+    set({ currentChannelId: channelId, isMobileNavOpen: false });
   },
+
+  toggleMobileNav: () => set((state) => ({ isMobileNavOpen: !state.isMobileNavOpen })),
+  closeMobileNav: () => set({ isMobileNavOpen: false }),
 
   currentServer: () => {
     const state = get();

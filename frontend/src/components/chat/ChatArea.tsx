@@ -1,13 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useAppStore } from "../../store/useAppStore";
 import { useChatStore } from "../../store/useChatStore";
-import { HashIcon, SendIcon } from "../icons/Icons";
+import { HashIcon, MenuIcon, SendIcon } from "../icons/Icons";
 import { MessageList } from "./MessageList";
 import type { Message } from "../../types";
 
 const EMPTY_MESSAGES: Message[] = [];
 
-export function ChatArea() {
+export function ChatArea({ onOpenMenu }: { onOpenMenu: () => void }) {
   const currentChannel = useAppStore((state) => state.currentChannel());
   const channelId = currentChannel?.id ?? null;
 
@@ -36,6 +36,14 @@ export function ChatArea() {
   return (
     <section className="flex h-full min-w-0 flex-1 flex-col bg-discord-bg">
       <header className="flex h-12 flex-shrink-0 items-center gap-2 border-b border-discord-border px-4 shadow-sm">
+        <button
+          onClick={onOpenMenu}
+          title="Abrir menu"
+          aria-label="Abrir menu"
+          className="-ml-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded text-discord-text-muted hover:bg-discord-bg-light hover:text-discord-text md:hidden"
+        >
+          <MenuIcon className="h-5 w-5" />
+        </button>
         <HashIcon className="h-5 w-5 text-discord-text-dim" />
         <h2 className="font-semibold text-white">{currentChannel?.name ?? "canal"}</h2>
       </header>
