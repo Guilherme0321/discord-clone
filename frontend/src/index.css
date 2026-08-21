@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @theme {
   --color-discord-bg-darkest: #1e1f22;
@@ -10,13 +11,14 @@
   --color-discord-text: #dbdee1;
   --color-discord-text-muted: #949ba4;
   --color-discord-text-dim: #80848e;
-  --color-discord-blurple: #5865f2;
-  --color-discord-blurple-hover: #4752c4;
+  /* Roxo do gradiente do logo Discordia (era o "blurple" azul-indigo do Discord) */
+  --color-discord-blurple: #6d3cff;
+  --color-discord-blurple-hover: #5a2fd6;
   --color-discord-green: #23a559;
   --color-discord-red: #f23f42;
   --color-discord-yellow: #f0b232;
 
-  --font-sans: "gg sans", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: "Inter", "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 html,

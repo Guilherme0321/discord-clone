@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAppStore } from "../../store/useAppStore";
-import { CompassIcon, PlusIcon } from "../icons/Icons";
+import { CompassIcon, DiscordiaLogo, PlusIcon } from "../icons/Icons";
 
 export function SidebarServers() {
   const servers = useAppStore((state) => state.servers);
@@ -39,6 +39,11 @@ export function SidebarServers() {
 
   return (
     <nav className="flex h-full w-[72px] flex-shrink-0 flex-col items-center gap-2 bg-discord-bg-darkest py-3">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-discord-bg">
+        <DiscordiaLogo className="h-6 w-6" />
+      </div>
+      <div className="h-0.5 w-8 flex-shrink-0 rounded-full bg-discord-bg" />
+
       {servers.map((server) => {
         const isActive = server.id === currentServerId;
         return (
