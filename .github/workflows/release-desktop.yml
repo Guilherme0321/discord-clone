@@ -41,7 +41,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Sem isso, o build embutiria o fallback "http://localhost:4000" —
           # aponta explicitamente pro backend de produção no Render.
-          VITE_API_URL: https://discord-clone-backend-35ub.onrender.com
+          VITE_API_URL: https://discord-clone-backend-gef2.onrender.com
         with:
           projectPath: frontend
           tagName: ${{ github.ref_name }}

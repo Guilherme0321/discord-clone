@@ -4,7 +4,7 @@
 // repositórios em memória e nas salas do Socket.io.
 //
 // Uso:
-//   BACKEND_URL=https://discord-clone-backend-35ub.onrender.com \
+//   BACKEND_URL=https://discord-clone-backend-gef2.onrender.com \
 //   FRONTEND_ORIGIN=https://discord-clone-frontend-fngx.onrender.com \
 //   NUM_SERVERS=3 USERS_PER_SERVER=4 \
 //   node simulate-concurrent.mjs

@@ -29,7 +29,7 @@
         "font-src": "'self' https://fonts.gstatic.com",
         "img-src": "'self' data: blob:",
         "media-src": "'self' blob:",
-        "connect-src": "'self' https://discord-clone-backend-35ub.onrender.com wss://discord-clone-backend-35ub.onrender.com http://localhost:* ws://localhost:*"
+        "connect-src": "'self' https://discord-clone-backend-gef2.onrender.com wss://discord-clone-backend-gef2.onrender.com http://localhost:* ws://localhost:*"
       }
     }
   },

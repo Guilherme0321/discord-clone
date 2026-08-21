@@ -35,4 +35,4 @@ jobs:
           npm ci
           npm run build
         env:
-          VITE_API_URL: https://discord-clone-backend-35ub.onrender.com
+          VITE_API_URL: https://discord-clone-backend-gef2.onrender.com
