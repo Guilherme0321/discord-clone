@@ -15,3 +15,8 @@ Thumbs.db
 
 # Configurações locais do Claude Code (permissões específicas da sua máquina)
 .claude/settings.local.json
+
+# Tauri: o projeto Android/iOS que `tauri android init`/`tauri ios init` vai
+# gerar futuramente (target/ dos binários Rust já está no .gitignore do
+# próprio src-tauri/)
+frontend/src-tauri/gen/
