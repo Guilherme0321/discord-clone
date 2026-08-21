@@ -46,6 +46,17 @@ Este repositório tem um [`render.yaml`](render.yaml) (Blueprint) que cria dois 
 
 ⚠️ **Importante**: os dados (usuários, servidores, mensagens) ficam **em memória** — qualquer redeploy ou reinício do serviço (inclusive o "sleep" do plano free do Render por inatividade) apaga tudo. Isso é intencional para este MVP; para persistência real, implemente um repositório (`I*Repository`) com um banco de verdade.
 
+### Deploy automático via GitHub Actions
+
+O Render já faz auto-deploy nativo a cada push (padrão do Blueprint). [`.github/workflows/deploy-render.yml`](.github/workflows/deploy-render.yml) adiciona uma camada opcional: builda backend e frontend primeiro (gate de qualidade — só dispara o deploy se o build passar) e então aciona o deploy via [Deploy Hook](https://render.com/docs/deploy-hooks) do Render. Funciona mesmo que o auto-deploy nativo seja desligado depois.
+
+Pra habilitar, pegue a URL do Deploy Hook de cada serviço em **Render Dashboard → serviço → Settings → Deploy Hook**, e cadastre como *secret* no repositório GitHub (**Settings → Secrets and variables → Actions → New repository secret**):
+
+- `RENDER_BACKEND_DEPLOY_HOOK_URL`
+- `RENDER_FRONTEND_DEPLOY_HOOK_URL`
+
+Sem esses secrets configurados, o workflow builda normalmente mas pula o passo de deploy (não falha).
+
 ## App Desktop (Windows)
 
 O frontend também roda como app nativo Windows via [Tauri](https://tauri.app) (`frontend/src-tauri/`) — mesma UI, mesma base de código, sem embutir um navegador inteiro tipo Electron (instalador na faixa de poucos MB).
