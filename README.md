@@ -54,10 +54,10 @@ O frontend também roda como app nativo Windows via [Tauri](https://tauri.app) (
 
 ### Baixar já pronto
 
-Pegue o instalador mais recente na página de [**Releases**](https://github.com/Guilherme0321/discord-clone/releases):
+Pegue o instalador mais recente de uma das duas formas:
 
-- `discordia_x.y.z_x64-setup.exe` — instalador NSIS (recomendado)
-- `discordia_x.y.z_x64_en-US.msi` — instalador MSI
+- Página de [**Releases**](https://github.com/Guilherme0321/discord-clone/releases) — `discordia_x.y.z_x64-setup.exe` (NSIS, recomendado) ou `discordia_x.y.z_x64_en-US.msi` (MSI).
+- Aba [**Actions**](https://github.com/Guilherme0321/discord-clone/actions/workflows/release-desktop.yml) → abra o run da tag desejada → baixe o artifact `discordia-windows-vX.Y.Z` (fica disponível assim que o build termina, mesmo antes do Release ser publicado; expira em 90 dias).
 
 ⚠️ Como o instalador não é assinado digitalmente, o Windows SmartScreen vai avisar **"O Windows protegeu seu PC"** na primeira execução — clique em **Mais informações → Executar assim mesmo**. É esperado para apps novos sem certificado de code signing (pago) e não impede a instalação.
 
