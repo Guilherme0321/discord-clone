@@ -1,7 +1,7 @@
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { createApp, channelRepository, messageService } from "./app";
-import { CLIENT_URL, PORT } from "./config/env";
+import { ALLOWED_ORIGINS, PORT } from "./config/env";
 import { registerSocketAuth } from "./shared/socket-auth";
 import { registerChatSocket } from "./modules/chat/chat.socket";
 import { registerVoiceSignaling } from "./modules/signaling/signaling.socket";
@@ -11,7 +11,7 @@ const httpServer = createServer(app);
 
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: CLIENT_URL,
+    origin: ALLOWED_ORIGINS,
     credentials: true,
   },
   // Heartbeat explícito (em vez de depender do default implícito do

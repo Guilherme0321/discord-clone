@@ -12,3 +12,8 @@ export const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 // Em produção (Render), CLIENT_URL pode vir de outro serviço via `fromService`,
 // que resolve apenas o host (sem protocolo) — por isso normalizamos aqui.
 export const CLIENT_URL = withScheme(process.env.CLIENT_URL || "http://localhost:5173");
+
+// Origens que o CORS/Socket.io devem aceitar além do CLIENT_URL: o app
+// desktop (Tauri) carrega o frontend via WebView2 num host fixo próprio, não
+// em CLIENT_URL — sem isso, todo request do .exe seria rejeitado por CORS.
+export const ALLOWED_ORIGINS = [CLIENT_URL, "http://tauri.localhost", "tauri://localhost"];

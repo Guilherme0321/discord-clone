@@ -1,6 +1,6 @@
 import express, { Express } from "express";
 import cors from "cors";
-import { CLIENT_URL } from "./config/env";
+import { ALLOWED_ORIGINS } from "./config/env";
 
 import { InMemoryUserRepository } from "./modules/users/in-memory-user.repository";
 import { UserService } from "./modules/users/user.service";
@@ -37,7 +37,19 @@ const messageController = new MessageController(messageService);
 export function createApp(): Express {
   const app = express();
 
-  app.use(cors({ origin: CLIENT_URL, credentials: true }));
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Sem Origin (curl, apps mobile nativos) ou origem na allowlist: libera.
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      credentials: true,
+    })
+  );
   app.use(express.json());
 
   app.get("/health", (_req, res) => {
