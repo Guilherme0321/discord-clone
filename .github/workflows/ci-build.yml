@@ -1,0 +1,38 @@
+name: Build check
+
+# Garante que backend e frontend buildam a cada push em main (ou manualmente).
+# Só validação — não dispara deploy nenhum; o Render já faz auto-deploy
+# nativo por conta própria a cada push.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - ".github/workflows/ci-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build backend
+        working-directory: backend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+        env:
+          VITE_API_URL: https://discord-clone-backend-35ub.onrender.com
